@@ -332,6 +332,20 @@
                         <div class="strip-sub">恢复状态，进入下一天</div>
                     </div>
                 </button>
+
+                <!-- 排行榜入口 -->
+                <button class="action-strip-btn" id="btn-leaderboard" style="background:linear-gradient(90deg, rgba(30,50,20,0.95), rgba(20,35,12,0.95)); border-color:rgba(180,140,60,0.3);">
+                    <div class="strip-avatar">
+                        <div class="strip-fallback-icon" style="display:block; font-size:30px;">🏆</div>
+                    </div>
+                    <div class="strip-content">
+                        <div class="strip-title-row">
+                            <span class="strip-title">排行榜</span>
+                            <span class="strip-cost free">查看前10</span>
+                        </div>
+                        <div class="strip-sub">查看全营训练成绩排名</div>
+                    </div>
+                </button>
             </div>
         </div>
 
@@ -455,7 +469,31 @@
             <div class="btn-group">
                 <button class="btn" id="end-retry">🔄 重新入伍</button>
                 <button class="btn btn-gold" id="end-home">🏠 返回军营大门</button>
+                <button class="btn btn-gold" id="end-submit">📤 提交成绩</button>
+                <button class="btn" id="end-leaderboard">🏆 排行榜</button>
             </div>
+        </div>
+
+        <!-- ===== 9. 排行榜 ===== -->
+        <div id="leaderboard-screen" class="screen" style="padding:20px 0; text-align:center;">
+            <h2 style="color:#f5eddc; margin-bottom:16px;">🏆 排行榜 · 前10名</h2>
+            <div id="leaderboard-container" style="width:100%; overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; color:#f5eddc; font-size:14px;">
+                    <thead>
+                        <tr style="background:rgba(0,0,0,0.3);">
+                            <th style="padding:8px 4px; border-bottom:1px solid rgba(180,140,60,0.3);">名次</th>
+                            <th style="padding:8px 4px; border-bottom:1px solid rgba(180,140,60,0.3);">姓名</th>
+                            <th style="padding:8px 4px; border-bottom:1px solid rgba(180,140,60,0.3);">耐力</th>
+                            <th style="padding:8px 4px; border-bottom:1px solid rgba(180,140,60,0.3);">技巧</th>
+                            <th style="padding:8px 4px; border-bottom:1px solid rgba(180,140,60,0.3);">团队</th>
+                            <th style="padding:8px 4px; border-bottom:1px solid rgba(180,140,60,0.3);">总分</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-tbody"></tbody>
+                </table>
+                <div id="leaderboard-empty" style="padding:20px; color:#8aa07a; font-size:14px;">暂无数据</div>
+            </div>
+            <button class="btn btn-gold" id="leaderboard-back" style="margin-top:20px;">← 返回</button>
         </div>
     </div>
 
@@ -508,6 +546,15 @@
 
         const $ = id => document.getElementById(id);
 
+        async function fetchJSON(url, options = {}) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({ error: '请求失败' }));
+                throw new Error(err.error || '请求失败');
+            }
+            return response.json();
+        }
+
         function updateMainUI() {
             $('day-display').textContent = G.day;
             $('energy-display').textContent = G.energy;
@@ -523,6 +570,65 @@
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
             const el = $(screenId);
             if (el) el.classList.add('active');
+        }
+
+        async function loadLeaderboard() {
+            const tbody = $('leaderboard-tbody');
+            const empty = $('leaderboard-empty');
+            tbody.innerHTML = '';
+            try {
+                const data = await fetchJSON('/api/scores?limit=10');
+                if (data.length === 0) {
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+                data.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid rgba(180,140,60,0.15)';
+                    tr.innerHTML = `
+                        <td style="padding:6px 4px;">${index + 1}</td>
+                        <td style="padding:6px 4px;">${row.name}</td>
+                        <td style="padding:6px 4px;">${row.score1}</td>
+                        <td style="padding:6px 4px;">${row.score2}</td>
+                        <td style="padding:6px 4px;">${row.score3}</td>
+                        <td style="padding:6px 4px; font-weight:bold; color:#d4a843;">${row.total}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                empty.style.display = 'block';
+                empty.textContent = '加载失败：' + err.message;
+            }
+        }
+
+        async function submitScore() {
+            const name = prompt('请输入您的姓名（必填）：');
+            if (!name || name.trim() === '') {
+                alert('姓名不能为空！');
+                return;
+            }
+            const jaccount = prompt('请输入您的 JAccount（选填，可直接确定）：') || '';
+            const payload = {
+                name: name.trim(),
+                jaccount: jaccount.trim(),
+                score1: G.stamina,
+                score2: G.skill,
+                score3: G.team
+            };
+            try {
+                await fetchJSON('/api/scores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                alert('成绩提交成功！');
+                // 自动跳转到排行榜
+                showScreen('leaderboard-screen');
+                loadLeaderboard();
+            } catch (err) {
+                alert('提交失败：' + err.message);
+            }
         }
 
         function goToMain() {
@@ -1640,6 +1746,16 @@
             updateMainUI();
         };
         $('end-home').onclick = () => showScreen('start-screen');
+        $('end-submit').onclick = submitScore;
+        $('end-leaderboard').onclick = () => {
+            showScreen('leaderboard-screen');
+            loadLeaderboard();
+        };
+        $('btn-leaderboard').onclick = () => {
+            showScreen('leaderboard-screen');
+            loadLeaderboard();
+        };
+        $('leaderboard-back').onclick = () => goToMain();
 
         window.addEventListener('keydown', (e) => {
             const k = e.key.toUpperCase();
