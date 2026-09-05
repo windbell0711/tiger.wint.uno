@@ -618,10 +618,12 @@
             const tbody = $('leaderboard-tbody');
             const empty = $('leaderboard-empty');
             tbody.innerHTML = '';
+            empty.style.display = 'block';
+            empty.textContent = '加载中...';
             try {
                 const data = await fetchJSON('/api/scores?limit=10');
                 if (data.length === 0) {
-                    empty.style.display = 'block';
+                    empty.textContent = '暂无数据';
                     return;
                 }
                 empty.style.display = 'none';
@@ -646,7 +648,6 @@
                     tbody.appendChild(tr);
                 });
             } catch (err) {
-                empty.style.display = 'block';
                 empty.textContent = '加载失败：' + err.message;
             }
         }
