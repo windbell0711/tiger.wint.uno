@@ -693,9 +693,9 @@
             return true;
         }
 
-        function addStamina(val) { G.stamina = Math.min(100, G.stamina + val); }
-        function addSkill(val) { G.skill = Math.min(100, G.skill + val); }
-        function addTeam(val) { G.team = Math.min(100, G.team + val); }
+        function addStamina(val) { G.stamina = G.stamina + val; }
+        function addSkill(val) { G.skill = G.skill + val; }
+        function addTeam(val) { G.team = G.team + val; }
 
         // ============================================================
         //  1. 队列训练 (困难模式专属加分)
@@ -998,9 +998,9 @@
         function qFinishTraining() {
             qState.active = false;
             qStopTimer();
-            // 结算：基础耐力技巧提升（困难模式享有更高收益上限）
-            let staminaGain = Math.min(12, Math.floor(qState.score / 20) + 2);
-            let skillGain = Math.min(12, Math.floor(qState.score / 20) + 2);
+            // 结算：基础耐力技巧提升（困难模式享有更高收益）
+            let staminaGain = Math.floor(qState.score / 20) + 2;
+            let skillGain = Math.floor(qState.score / 20) + 2;
             
             // 困难模式专项额外属性加成（耐力+4, 技巧+5）
             if (qState.difficulty === 'hard') {
@@ -1379,9 +1379,9 @@
             const friendlies = shooting.friendlyHits;
 
             // 基础技巧收益
-            let skillGain = Math.min(20, Math.floor(score / 18) + 3);
+            let skillGain = Math.floor(score / 18) + 3;
             // 基础团队收益
-            let teamGain = Math.max(0, Math.min(12, Math.floor(score / 22) + 3));
+            let teamGain = Math.floor(score / 22) + 3;
 
             // 误伤惩罚逻辑：
             let friendlyPenaltyMsg = '';
@@ -1633,9 +1633,9 @@
             const flags = endurance.flagsGathered;
 
             // 紧凑分值
-            let staminaGain = Math.min(20, Math.floor(steps / 9) + flags + 2);
-            let teamGain = Math.min(20, Math.floor((length - 3) * 1.5) + flags + 2);
-            let skillGain = Math.min(10, Math.floor(survivalTime / 6) + flags + 2);
+            let staminaGain = Math.floor(steps / 9) + flags + 2;
+            let teamGain = Math.floor((length - 3) * 1.5) + flags + 2;
+            let skillGain = Math.floor(survivalTime / 6) + flags + 2;
 
             addStamina(staminaGain);
             addSkill(skillGain);
