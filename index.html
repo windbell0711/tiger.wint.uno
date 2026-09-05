@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>虎虎生威 · 新兵成长营</title>
+    <style>
+        /* ===== 全局样式 ===== */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+            background:#0b1407;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:16px;
+            background-image:radial-gradient(ellipse at 20% 50%,#19330e 0%,transparent 60%),
+                             radial-gradient(ellipse at 80% 50%,#19330e 0%,transparent 60%),
+                             linear-gradient(180deg,#091206 0%,#13240a 100%);
+        }
+        #app {
+            width:100%;
+            max-width:640px;
+            background:linear-gradient(145deg,#1b3510,#112209);
+            border-radius:32px;
+            padding:20px 16px 24px;
+            box-shadow:0 20px 60px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,215,100,0.1), 0 0 0 1px rgba(180,140,60,0.18);
+            border:1px solid rgba(180,140,60,0.25);
+            position:relative;
+            overflow:hidden;
+        }
+        #app::before {
+            content:'';
+            position:absolute;
+            inset:0;
+            background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(60,100,40,0.04) 20px,rgba(60,100,40,0.04) 22px),
+                         repeating-linear-gradient(-45deg,transparent,transparent 20px,rgba(60,100,40,0.04) 20px,rgba(60,100,40,0.04) 22px);
+            pointer-events:none;
+            z-index:0;
+        }
+        .screen { display:none; flex-direction:column; align-items:center; position:relative; z-index:1; animation:fadeSlide 0.35s ease-out; }
+        .screen.active { display:flex; }
+        @keyframes fadeSlide { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ===== 按钮通用 ===== */
+        .btn {
+            background:linear-gradient(145deg,#3d6b1e,#2d5016);
+            border:none;
+            border-radius:14px;
+            padding:14px 24px;
+            font-size:16px;
+            font-weight:700;
+            color:#f5eddc;
+            cursor:pointer;
+            transition:all 0.15s ease;
+            box-shadow:0 4px 0 #14240a,0 6px 16px rgba(0,0,0,0.4);
+            letter-spacing:1px;
+            border:1px solid rgba(180,140,60,0.25);
+            touch-action:manipulation;
+            user-select:none;
+            text-align:center;
+        }
+        .btn:active { transform:translateY(3px); box-shadow:0 1px 0 #14240a,0 4px 10px rgba(0,0,0,0.3); }
+        .btn:hover:not(:active) { background:linear-gradient(145deg,#4a7a28,#33601a); border-color:rgba(200,170,80,0.4); }
+        .btn-gold {
+            background:linear-gradient(145deg,#d4a843,#ab8528);
+            box-shadow:0 4px 0 #614811,0 6px 20px rgba(180,140,60,0.3);
+            border-color:rgba(235,200,110,0.6);
+            color:#162409;
+        }
+        .btn-gold:active { transform:translateY(3px); box-shadow:0 1px 0 #614811; }
+        .btn-gold:hover:not(:active) { background:linear-gradient(145deg,#e5be5a,#b89230); }
+        .btn:disabled { opacity:0.45; transform:translateY(2px); box-shadow:0 2px 0 #14240a; cursor:not-allowed; pointer-events:none; }
+        .btn-danger {
+            background:linear-gradient(145deg,#8c2727,#6a1a1a);
+            border-color:rgba(220,80,80,0.4);
+        }
+
+        /* ===== 首页 ===== */
+        #start-screen { padding:14px 8px 10px; width:100%; }
+        .logo { font-size:52px; filter:drop-shadow(0 4px 20px rgba(212,168,67,0.35)); animation:float 3.2s ease-in-out infinite; }
+        @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+        .title { font-size:30px; font-weight:900; color:#f5eddc; text-shadow:0 2px 10px rgba(0,0,0,0.6); letter-spacing:3px; margin:8px 0 14px; text-align:center; }
+        .title span { color:#d4a843; }
+
+        .slogan-row { display:flex; gap:8px; justify-content:center; width:100%; margin-bottom:16px; }
+        .slogan-item {
+            flex:1; max-width:120px; background:linear-gradient(145deg, #a11f1f, #700f0f);
+            color:#ffebb3; font-size:13px; font-weight:900; letter-spacing:1px; text-align:center;
+            padding:7px 4px; border-radius:8px; border:1px solid #d4a843;
+            box-shadow:0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+            text-shadow:0 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .intro-box {
+            background:rgba(0,0,0,0.3); border:1px solid rgba(180,140,60,0.2); border-radius:16px;
+            padding:14px 16px; color:#b0c2a2; font-size:13px; line-height:1.7; text-align:justify;
+            margin-bottom:20px; width:100%; box-shadow:inset 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .intro-box b { color:#e8c672; }
+
+        /* ===== 主界面状态栏 ===== */
+        #main-screen { padding:0; width:100%; }
+        .status-bar {
+            display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px;
+            background:rgba(0,0,0,0.3); border-radius:16px; padding:10px 14px; margin-bottom:14px;
+            border:1px solid rgba(180,140,60,0.15); width:100%;
+        }
+        .status-item { display:flex; align-items:center; gap:4px; font-size:13px; color:#a8b89a; }
+        .status-item .val { font-weight:800; color:#f5eddc; font-size:16px; min-width:24px; }
+        .status-item .val.gold { color:#d4a843; }
+        .status-item .val.green { color:#7ddf7d; }
+        .status-item .val.blue { color:#7db8df; }
+        .status-item .val.red { color:#ef7a7a; }
+
+        /* ===== 主菜单横排拉长卡片 ===== */
+        .action-list-vertical { display:flex; flex-direction:column; gap:10px; width:100%; margin-bottom:14px; }
+        .action-strip-btn {
+            display:flex; align-items:center;
+            background:linear-gradient(90deg, rgba(38,65,22,0.95), rgba(26,46,14,0.95));
+            border:1px solid rgba(180,140,60,0.25); border-radius:18px; padding:8px 12px;
+            cursor:pointer; box-shadow:0 4px 0 #0d1a06, 0 6px 14px rgba(0,0,0,0.4);
+            transition:all 0.15s ease; position:relative; text-align:left;
+        }
+        .action-strip-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #0d1a06; }
+        .action-strip-btn:hover:not(:active):not(:disabled) {
+            background:linear-gradient(90deg, rgba(46,78,26,0.98), rgba(32,58,18,0.98));
+            border-color:rgba(212,168,67,0.5);
+        }
+        .action-strip-btn.danger-strip {
+            background:linear-gradient(90deg, rgba(92,26,26,0.95), rgba(58,16,16,0.95));
+            border-color:rgba(220,80,80,0.3);
+        }
+
+        .strip-avatar {
+            width:64px; height:64px; flex-shrink:0; border-radius:12px;
+            background:rgba(0,0,0,0.35); border:1px solid rgba(180,140,60,0.2);
+            overflow:hidden; display:flex; align-items:center; justify-content:center; margin-right:12px;
+        }
+        .strip-avatar img { width:100%; height:100%; object-fit:cover; object-position:center top; }
+        .strip-fallback-icon { font-size:30px; }
+        .strip-content { flex:1; display:flex; flex-direction:column; justify-content:center; }
+        .strip-title-row { display:flex; justify-content:space-between; align-items:center; }
+        .strip-title { font-size:16px; font-weight:800; color:#f5eddc; letter-spacing:0.5px; }
+        .strip-cost { font-size:12px; color:#ef7a7a; font-weight:700; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:10px; }
+        .strip-cost.free { color:#7ddf7d; }
+        .strip-sub { font-size:12px; color:#9cb18d; margin-top:3px; }
+
+        /* ===== 洗牌动画与队列训练 ===== */
+        @keyframes cardShuffle {
+            0% { transform:scale(1) translate(0, 0) rotate(0deg); }
+            30% { transform:scale(0.85) translate(var(--sh-x, -12px), -16px) rotate(var(--sh-r, -6deg)); opacity:0.6; filter:blur(0.6px); }
+            65% { transform:scale(1.06) translate(calc(var(--sh-x, 12px) * -0.5), 6px) rotate(calc(var(--sh-r, 6deg) * -0.5)); opacity:0.95; }
+            100% { transform:scale(1) translate(0, 0) rotate(0deg); opacity:1; filter:none; }
+        }
+        .action-btn.shuffling { animation: cardShuffle 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        .queue-game .action-btn.btn-pressed {
+            background:linear-gradient(145deg, #f0c14b, #c99320) !important;
+            color:#1a280b !important;
+            border-color:#fff !important;
+            box-shadow:0 0 16px rgba(240,193,75,0.85), inset 0 0 8px #fff !important;
+            transform:scale(1.06) translateY(-2px) !important;
+        }
+
+        .queue-game .dual-panel { display:flex; gap:12px; width:100%; margin-bottom:12px; }
+        .queue-game .panel { flex:1; background:rgba(0,0,0,0.25); border-radius:18px; padding:12px; border:1px solid rgba(180,140,60,0.1); min-height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+        .queue-game .panel-title { position:absolute; top:-8px; left:12px; background:#1b3510; padding:0 8px; font-size:12px; color:#8aa07a; font-weight:600; border-radius:8px; border:1px solid rgba(180,140,60,0.15); }
+        .queue-game .avatar { width:64px; height:64px; display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
+        .queue-game .avatar img { width:100%; height:100%; object-fit:contain; border-radius:8px; }
+        .queue-game .speech-text { font-size:16px; font-weight:700; color:#f5eddc; text-align:center; min-height:24px; }
+        .queue-game .speech-sub { font-size:12px; color:#8aa07a; text-align:center; min-height:18px; }
+        .queue-game .reaction-row { display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 4px; margin-bottom:10px; }
+        .queue-game .status-badge { font-size:13px; padding:4px 16px; border-radius:20px; font-weight:600; background:rgba(0,0,0,0.3); color:#8aa07a; border:1px solid rgba(180,140,60,0.1); }
+        .queue-game .status-badge.success { background:rgba(60,180,60,0.25); color:#7ddf7d; border-color:rgba(60,180,60,0.4); }
+        .queue-game .status-badge.fail { background:rgba(200,60,60,0.25); color:#ef7a7a; border-color:rgba(200,60,60,0.4); }
+        .queue-game .actions-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; width:100%; margin-bottom:12px; }
+        .queue-game .action-btn { background:linear-gradient(145deg,#243b17,#172a0c); border:1px solid rgba(180,140,60,0.12); border-radius:14px; padding:10px 4px; color:#c8d4b8; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.1s ease; box-shadow:0 3px 0 #0d1807; touch-action:manipulation; user-select:none; text-align:center; }
+        .queue-game .action-btn .key-hint-sm { display:block; font-size:10px; font-weight:400; color:#6a806a; margin-top:2px; }
+        .queue-game .action-btn:active { transform:translateY(3px); box-shadow:0 0px 0 #0d1807; }
+        .queue-game .action-btn.correct { background:linear-gradient(145deg,#3a8a2a,#2a6a1a); border-color:rgba(100,220,80,0.5); color:#fff; transform:scale(1.02); }
+        .queue-game .action-btn.wrong { background:linear-gradient(145deg,#8a2a2a,#6a1a1a); border-color:rgba(220,80,80,0.5); color:#fff; transform:scale(0.96); }
+        .queue-game .action-btn.face-error { background:linear-gradient(145deg,#8a6a2a,#6a4a1a); border-color:rgba(220,180,80,0.5); color:#fff; }
+        .queue-game .feedback-area { width:100%; min-height:40px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; color:#a8b89a; border-radius:12px; background:rgba(0,0,0,0.25); padding:6px 14px; margin-bottom:10px; border:1px solid rgba(180,140,60,0.08); text-align:center; }
+        .queue-game .progress-wrap { width:100%; height:6px; background:rgba(255,255,255,0.06); border-radius:10px; overflow:hidden; }
+        .queue-game .progress-bar { height:100%; width:0%; background:linear-gradient(90deg,#4a7a2a,#d4a843); transition:width 0.4s ease; }
+
+        /* ===== 射击训练 ===== */
+        .shooting-wrapper {
+            position:relative; width:100%; overflow:hidden; border-radius:14px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="%2339ff14" stroke-width="1.6"/><circle cx="18" cy="18" r="4" fill="none" stroke="%23ff3333" stroke-width="1.2"/><circle cx="18" cy="18" r="1.5" fill="%23ff3333"/><line x1="18" y1="1" x2="18" y2="9" stroke="%2339ff14" stroke-width="1.8"/><line x1="18" y1="27" x2="18" y2="35" stroke="%2339ff14" stroke-width="1.8"/><line x1="1" y1="18" x2="9" y2="18" stroke="%2339ff14" stroke-width="1.8"/><line x1="27" y1="18" x2="35" y2="18" stroke="%2339ff14" stroke-width="1.8"/></svg>') 18 18, crosshair;
+        }
+        #shooting-canvas { width:100%; height:auto; aspect-ratio:4/3; background:#0d1808; display:block; touch-action:none; }
+        .shooter-avatar-slot {
+            position:absolute; bottom:-4px; left:10px; width:150px; height:160px; pointer-events:none;
+            z-index:4; display:flex; align-items:flex-end; filter:drop-shadow(2px 2px 8px rgba(0,0,0,0.7));
+        }
+        .shooter-avatar-slot img { width:100%; height:100%; object-fit:contain; object-position:bottom left; }
+        .target-info {
+            position:absolute; top:10px; left:50%; transform:translateX(-50%);
+            background:rgba(0,0,0,0.8); padding:4px 16px; border-radius:20px; color:#f5eddc;
+            font-weight:600; font-size:12px; pointer-events:none; border:1px solid rgba(180,140,60,0.3);
+            white-space:nowrap; z-index:6;
+        }
+
+        /* ===== 耐力训练 ===== */
+        .game-container { width:100%; background:rgba(0,0,0,0.25); border-radius:18px; padding:12px; border:1px solid rgba(180,140,60,0.1); margin-bottom:12px; }
+        .endurance-canvas-wrap {
+            position:relative; border-radius:14px; padding:4px;
+            background:linear-gradient(135deg, #d32f2f, #f57c00, #d32f2f);
+            box-shadow:0 0 16px rgba(211,47,47,0.45), inset 0 0 12px rgba(245,124,0,0.5);
+            animation:borderGlow 2.5s ease-in-out infinite alternate;
+        }
+        @keyframes borderGlow {
+            0% { box-shadow:0 0 12px rgba(211,47,47,0.4), inset 0 0 8px rgba(245,124,0,0.4); }
+            100% { box-shadow:0 0 24px rgba(255,87,34,0.7), inset 0 0 16px rgba(255,193,7,0.6); }
+        }
+        #endurance-canvas { width:100%; height:auto; aspect-ratio:4/3; background:#0e1a09; border-radius:10px; display:block; touch-action:none; }
+        .game-controls { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; justify-content:center; }
+        .game-score { display:flex; justify-content:space-between; padding:6px 12px; background:rgba(0,0,0,0.25); border-radius:10px; margin-bottom:8px; font-size:14px; color:#a8b89a; }
+        .game-score span { font-weight:700; color:#f5eddc; }
+        .endurance-stats { display:flex; gap:16px; justify-content:center; font-size:14px; color:#a8b89a; padding:4px 0; }
+        .endurance-stats span { color:#f5eddc; font-weight:700; }
+
+        /* ===== 结局 ===== */
+        #end-screen { padding:16px 0 8px; text-align:center; }
+        .result-icon { font-size:68px; margin-bottom:4px; filter:drop-shadow(0 4px 25px rgba(212,168,67,0.3)); }
+        .result-title { font-size:26px; font-weight:900; color:#f5eddc; letter-spacing:2px; }
+        .result-title .gold { color:#d4a843; }
+        .result-rank { font-size:22px; font-weight:800; padding:6px 26px; border-radius:30px; background:rgba(0,0,0,0.35); border:1px solid rgba(180,140,60,0.25); margin:8px 0 12px; display:inline-block; color:#d4a843; }
+        .result-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; width:100%; margin:12px 0 18px; }
+        .stat-item { background:rgba(0,0,0,0.2); border-radius:12px; padding:10px 4px; border:1px solid rgba(180,140,60,0.08); }
+        .stat-item .num { font-size:26px; font-weight:800; color:#f5eddc; display:block; }
+        .stat-item .lbl { font-size:12px; color:#8aa07a; }
+        .result-message { font-size:14px; color:#b4c5a7; padding:12px 16px; background:rgba(0,0,0,0.25); border-radius:14px; border-left:4px solid #d4a843; margin-bottom:20px; width:100%; line-height:1.7; text-align:justify; }
+        .btn-group { display:flex; gap:12px; width:100%; flex-wrap:wrap; justify-content:center; }
+        .btn-group .btn { flex:1; min-width:120px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- ===== 1. 首页 ===== -->
+        <div id="start-screen" class="screen active">
+            <div class="logo">🐯</div>
+            <div class="title">虎虎生威<span>·</span>新兵成长营</div>
+            
+            <div class="slogan-row">
+                <div class="slogan-item">听党指挥</div>
+                <div class="slogan-item">能打胜仗</div>
+                <div class="slogan-item">作风优良</div>
+            </div>
+
+            <div class="intro-box">
+                欢迎来到新兵成长营！本期训练实行<b>3天严苛考核制</b>，你必须安排有限体力，在队列反应、多排纵深射击及武装拉练中磨砺成长：<br>
+                • <b>队列训练</b>：严守口令，考验瞬时神经协调（困难模式奖励加分！）；<br>
+                • <b>射击演练</b>：四排纵深升降靶，30秒限时击毙（严禁误击友军！）；<br>
+                • <b>耐力拉练</b>：战术避障，综合考察耐力、技巧与团队（严禁追尾队友！）；<br>
+                唯有在3天内<b>耐力、技巧、团队三项全部突破70分</b>，方能问鼎“百战兵王”！
+            </div>
+
+            <button class="btn btn-gold" id="btn-enter" style="width:80%; font-size:18px;">🔰 踏入军营 · 开启集训</button>
+        </div>
+
+        <!-- ===== 2. 主面板 ===== -->
+        <div id="main-screen" class="screen">
+            <div class="status-bar">
+                <div class="status-item">📅 第 <span class="val gold" id="day-display">1</span> / 3 天</div>
+                <div class="status-item">⚡ 体力 <span class="val red" id="energy-display">100</span></div>
+                <div class="status-item">💪 耐力 <span class="val green" id="stamina-display">0</span></div>
+                <div class="status-item">🎯 技巧 <span class="val gold" id="skill-display">0</span></div>
+                <div class="status-item">🤝 团队 <span class="val blue" id="team-display">0</span></div>
+            </div>
+
+            <div class="action-list-vertical">
+                <!-- 队列训练卡片 UI1 -->
+                <button class="action-strip-btn" id="btn-queue">
+                    <div class="strip-avatar">
+                        <img src="UI1.png" alt="UI1" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                        <div class="strip-fallback-icon" style="display:none;">📢</div>
+                    </div>
+                    <div class="strip-content">
+                        <div class="strip-title-row">
+                            <span class="strip-title">队列训练</span>
+                            <span class="strip-cost">消耗体力 25</span>
+                        </div>
+                        <div class="strip-sub">锻炼服从与神经反应 · 困难模式享额外加成</div>
+                    </div>
+                </button>
+
+                <!-- 射击训练卡片 UI2 -->
+                <button class="action-strip-btn" id="btn-shooting">
+                    <div class="strip-avatar">
+                        <img src="UI2.png" alt="UI2" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                        <div class="strip-fallback-icon" style="display:none;">🔫</div>
+                    </div>
+                    <div class="strip-content">
+                        <div class="strip-title-row">
+                            <span class="strip-title">射击演练</span>
+                            <span class="strip-cost">消耗体力 35</span>
+                        </div>
+                        <div class="strip-sub">30秒限时精准射击 · 误伤扣除团队分(误击≥3扣光)</div>
+                    </div>
+                </button>
+
+                <!-- 耐力训练卡片 UI3 -->
+                <button class="action-strip-btn" id="btn-endurance">
+                    <div class="strip-avatar">
+                        <img src="UI3.png" alt="UI3" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                        <div class="strip-fallback-icon" style="display:none;">🏃</div>
+                    </div>
+                    <div class="strip-content">
+                        <div class="strip-title-row">
+                            <span class="strip-title">耐力拉练</span>
+                            <span class="strip-cost">消耗体力 40</span>
+                        </div>
+                        <div class="strip-sub">综合考察三项指标 · 严禁撞击与追尾！</div>
+                    </div>
+                </button>
+
+                <!-- 休息卡片 UI4 -->
+                <button class="action-strip-btn danger-strip" id="btn-rest">
+                    <div class="strip-avatar">
+                        <img src="UI4.png" alt="UI4" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                        <div class="strip-fallback-icon" style="display:none;">🛌</div>
+                    </div>
+                    <div class="strip-content">
+                        <div class="strip-title-row">
+                            <span class="strip-title">休息</span>
+                            <span class="strip-cost free">回满体力</span>
+                        </div>
+                        <div class="strip-sub">恢复状态，进入下一天</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== 3. 队列模式选择 ===== -->
+        <div id="queue-mode-select" class="screen" style="padding:24px 0; text-align:center;">
+            <h2 style="color:#f5eddc; margin-bottom:16px;">选择队列训练科目</h2>
+            <div class="btn-group">
+                <button class="btn btn-gold" id="queue-mode-classic">经典队列</button>
+                <button class="btn" id="queue-mode-hard">困难队列 (+额外奖励)</button>
+            </div>
+            <button class="btn" id="queue-mode-back" style="margin-top:20px;">← 返回</button>
+            <div style="margin-top:16px; color:#8aa07a; font-size:13px; line-height:1.7;">
+                经典：20轮，4秒限时，键位固定<br>
+                困难：20轮，2.5秒限时，动态<b>改变键位</b>，<b>每轮答对有额外加分奖励！</b>
+            </div>
+        </div>
+
+        <!-- ===== 4. 队列训练 ===== -->
+        <div id="queue-screen" class="screen queue-game">
+            <div style="width:100%; display:flex; justify-content:space-between; padding:0 4px 8px;">
+                <button class="btn" id="queue-back" style="padding:8px 16px; font-size:14px;">← 返回</button>
+                <span style="color:#a8b89a; font-size:14px;" id="queue-mode-label">队列训练</span>
+                <span style="color:#a8b89a; font-size:14px;">轮次: <span id="queue-round">0</span></span>
+            </div>
+            <div class="dual-panel">
+                <div class="panel">
+                    <div class="panel-title">👨‍✈️ 教官口令</div>
+                    <div class="avatar"><img id="queue-instructor-img" src="正常.png" alt="教官" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'64\' height=\'64\'><rect width=\'64\' height=\'64\' rx=\'8\' fill=\'%232d5016\'/><text x=\'32\' y=\'38\' font-size=\'26\' text-anchor=\'middle\' fill=\'white\'>👮</text></svg>'"></div>
+                    <div class="speech-text" id="queue-speech">准备训练</div>
+                    <div class="speech-sub" id="queue-speech-sub">等待指令...</div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">🎯 执行动作</div>
+                    <img id="queue-action-img" src="立正.png" alt="动作" style="width:90px; height:90px; object-fit:contain; background:rgba(0,0,0,0.2); border-radius:8px;">
+                    <div style="font-size:14px; color:#d4a843; margin-top:4px;" id="queue-action-label">等待</div>
+                </div>
+            </div>
+            <div class="reaction-row">
+                <div style="display:flex; gap:6px; align-items:center; font-size:14px; color:#a8b89a;">🧭 朝向：<span style="color:#d4a843; font-weight:700;" id="queue-facing">向前</span></div>
+                <div style="font-size:20px; font-weight:700; color:#a8b89a;">⏱️ <span id="queue-timer" style="color:#f5eddc;">0.00</span>s</div>
+                <div class="status-badge" id="queue-status">⏳ 等待</div>
+            </div>
+            <div class="actions-grid" id="queue-actions"></div>
+            <div class="feedback-area" id="queue-feedback">等待教官口令...</div>
+            <div class="progress-wrap"><div class="progress-bar" id="queue-progress"></div></div>
+            <div style="margin-top:10px; width:100%; display:flex; justify-content:center;">
+                <button class="btn" id="queue-exit" style="padding:8px 20px; font-size:14px; background:rgba(200,60,60,0.3);">✕ 退出训练</button>
+            </div>
+        </div>
+
+        <!-- ===== 5. 射击训练 ===== -->
+        <div id="shooting-screen" class="screen">
+            <div style="width:100%; display:flex; justify-content:space-between; padding:0 4px 8px;">
+                <button class="btn" id="shooting-back" style="padding:8px 16px; font-size:14px;">← 返回</button>
+                <span style="color:#a8b89a; font-size:14px;">四阶纵深实弹靶场</span>
+                <span style="color:#d4a843; font-weight:800; font-size:15px;">倒计时: <span id="shooting-countdown">30</span>s</span>
+            </div>
+            <div class="game-container">
+                <div class="shooting-wrapper">
+                    <canvas id="shooting-canvas" width="600" height="450"></canvas>
+                    <div class="target-info" id="shooting-info">🎯 越远分越高 · 误伤扣团队分 · 误伤≥3扣光当前所有团队分！</div>
+                    <div class="shooter-avatar-slot">
+                        <img id="shooter-aiming-img" src="持枪瞄准.png" alt="瞄准人物" onerror="renderShooterFallback(this)">
+                    </div>
+                </div>
+                <div class="game-controls">
+                    <button class="btn btn-gold" id="shooting-start">开始30秒射击演练</button>
+                    <button class="btn btn-danger" id="shooting-end" style="display:none;">提前撤收</button>
+                </div>
+                <div class="game-score">
+                    <span>🎯 靶场得分: <span id="shooting-score">0</span></span>
+                    <span>💥 击毙: <span id="shooting-hit">0</span></span>
+                    <span style="color:#ef7a7a;">🚫 误伤友军: <span id="shooting-friendly">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 6. 耐力训练 ===== -->
+        <div id="endurance-screen" class="screen">
+            <div style="width:100%; display:flex; justify-content:space-between; padding:0 4px 8px;">
+                <button class="btn" id="endurance-back" style="padding:8px 16px; font-size:14px;">← 返回</button>
+                <span style="color:#a8b89a; font-size:14px;">战地全向武装拉练</span>
+                <span style="color:#a8b89a; font-size:14px;">行军编制: <span id="endurance-length">3</span>人</span>
+            </div>
+            <div class="game-container">
+                <div class="endurance-canvas-wrap">
+                    <canvas id="endurance-canvas" width="600" height="450"></canvas>
+                </div>
+                <div class="endurance-stats">
+                    <span>🏃 步数: <span id="endurance-steps">0</span></span>
+                    <span>⏱️ 时间: <span id="endurance-time">0</span>s</span>
+                    <span>🚩 夺旗: <span id="endurance-flag-count">0</span></span>
+                </div>
+                <div class="game-controls">
+                    <button class="btn btn-gold" id="endurance-start">开始负重拉练</button>
+                    <button class="btn btn-danger" id="endurance-end" style="display:none;">就地休整</button>
+                </div>
+                <div style="text-align:center; font-size:12px; color:#8aa07a; margin-top:6px;">支持 [W/A/S/D] 或 [方向键] 控向 · <b>严禁撞身追尾！</b></div>
+            </div>
+        </div>
+
+        <!-- ===== 7. 休息 ===== -->
+        <div id="rest-screen" class="screen" style="padding:28px 0; text-align:center;">
+            <div style="font-size:52px; margin-bottom:10px;">🛌</div>
+            <h2 style="color:#f5eddc; margin-bottom:8px;">熄灯就寝 · 战地休整</h2>
+            <p style="color:#a8b89a;">体力已全部恢复，准备迎接第 <span id="rest-next-day" style="color:#d4a843; font-weight:bold;">2</span> 天考核！</p>
+            <button class="btn btn-gold" id="rest-continue" style="margin-top:24px; min-width:140px;">开始新的一天</button>
+        </div>
+
+        <!-- ===== 8. 结局结算 ===== -->
+        <div id="end-screen" class="screen">
+            <div class="result-icon" id="end-icon">🏆</div>
+            <div class="result-title">新兵结业<span class="gold">军功鉴定</span></div>
+            <div class="result-rank" id="end-rank">合格尖兵</div>
+            <div class="result-stats">
+                <div class="stat-item"><span class="num" id="end-stamina">0</span><span class="lbl">耐力</span></div>
+                <div class="stat-item"><span class="num" id="end-skill">0</span><span class="lbl">技巧</span></div>
+                <div class="stat-item"><span class="num" id="end-team">0</span><span class="lbl">团队</span></div>
+            </div>
+            <div class="result-message" id="end-message">结业评语</div>
+            <div class="btn-group">
+                <button class="btn" id="end-retry">🔄 重新入伍</button>
+                <button class="btn btn-gold" id="end-home">🏠 返回军营大门</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        'use strict';
+
+        const Assets = {
+            enemyImg: new Image(), friendImg: new Image(),
+            soldierLeft: new Image(), soldierRight: new Image(),
+            isEnemyLoaded: false, isFriendLoaded: false,
+            isSoldierLeftLoaded: false, isSoldierRightLoaded: false
+        };
+        Assets.enemyImg.src = '敌人.png';
+        Assets.enemyImg.onload = () => { Assets.isEnemyLoaded = true; };
+        Assets.friendImg.src = '队友.png';
+        Assets.friendImg.onload = () => { Assets.isFriendLoaded = true; };
+        Assets.soldierLeft.src = '人物向左.png';
+        Assets.soldierLeft.onload = () => { Assets.isSoldierLeftLoaded = true; };
+        Assets.soldierRight.src = '人物向右.png';
+        Assets.soldierRight.onload = () => { Assets.isSoldierRightLoaded = true; };
+
+        window.renderShooterFallback = function(imgEl) {
+            imgEl.style.display = 'none';
+            const p = imgEl.parentElement;
+            if (!p.querySelector('.shooter-svg')) {
+                const s = document.createElement('div');
+                s.className = 'shooter-svg';
+                s.innerHTML = `
+                    <svg width="140" height="150" viewBox="0 0 140 150">
+                        <path d="M0,150 L35,80 L75,70 L110,65 L140,65 L140,75 L95,85 L70,105 L60,150 Z" fill="#182c0f" stroke="#4a7a28" stroke-width="2"/>
+                        <circle cx="50" cy="55" r="22" fill="#294615" stroke="#4a7a28" stroke-width="2"/>
+                        <rect x="58" y="65" width="82" height="12" rx="4" fill="#141414" stroke="#666" stroke-width="1.5"/>
+                        <rect x="75" y="58" width="30" height="7" fill="#333"/>
+                        <line x1="88" y1="58" x2="88" y2="52" stroke="#d4a843" stroke-width="3"/>
+                    </svg>`;
+                p.appendChild(s);
+            }
+        };
+
+        // ============================================================
+        //  全局状态
+        // ============================================================
+        const G = {
+            day: 1, maxDay: 3, energy: 100, maxEnergy: 100,
+            stamina: 0, skill: 0, team: 0,
+            queueCost: 25, shootingCost: 35, enduranceCost: 40,
+            gameEnded: false,
+        };
+
+        const $ = id => document.getElementById(id);
+
+        function updateMainUI() {
+            $('day-display').textContent = G.day;
+            $('energy-display').textContent = G.energy;
+            $('stamina-display').textContent = G.stamina;
+            $('skill-display').textContent = G.skill;
+            $('team-display').textContent = G.team;
+            $('btn-queue').disabled = G.energy < G.queueCost;
+            $('btn-shooting').disabled = G.energy < G.shootingCost;
+            $('btn-endurance').disabled = G.energy < G.enduranceCost;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            const el = $(screenId);
+            if (el) el.classList.add('active');
+        }
+
+        function goToMain() {
+            if (G.gameEnded) { showEndScreen(); return; }
+            showScreen('main-screen');
+            updateMainUI();
+        }
+
+        function consumeEnergy(amount) {
+            if (G.energy < amount) return false;
+            G.energy -= amount;
+            updateMainUI();
+            return true;
+        }
+
+        function addStamina(val) { G.stamina = Math.min(100, G.stamina + val); }
+        function addSkill(val) { G.skill = Math.min(100, G.skill + val); }
+        function addTeam(val) { G.team = Math.min(100, G.team + val); }
+
+        // ============================================================
+        //  1. 队列训练 (困难模式专属加分)
+        // ============================================================
+        const Q_ACTIONS = ['立正','稍息','跨立','向左转','向右转','向后转','敬礼','礼毕'];
+        const Q_KEYS = ['W','X','K','A','D','S','J','Q'];
+        const Q_FRONT_REQUIRED = ['立正','稍息','跨立','敬礼'];
+        const Q_TURN = ['向左转','向右转','向后转'];
+        const ACTION_IMG_MAP = {
+            '立正': '立正.png', '稍息': '稍息.png', '跨立': '跨立.png',
+            '向左转': '向左转.png', '向右转': '向右转.png', '向后转': '向后转.png',
+            '敬礼': '敬礼.png', '礼毕': '立正.png'
+        };
+        const DIR_IMG_MAP = ['立正.png', '向左转.png', '向后转.png', '向右转.png'];
+        const WAIT_IMAGE = '立正.png';
+
+        let qState = {
+            round: 0, totalRounds: 20, currentAction: null, facing: 0,
+            isWaiting: false, isProcessing: false, timerInterval: null, roundStart: 0,
+            pendingSalute: false, pendingAttention: false, lastAction: null, turnStreak: 0,
+            score: 0, correctCount: 0, active: false,
+            difficulty: 'classic', timeLimit: 4.0, keyMap: {}, actionKeys: {},
+        };
+
+        function shuffleArray(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function generateRandomMapping() {
+            const shuffled = shuffleArray(Q_ACTIONS);
+            const map = {}, reverse = {};
+            Q_KEYS.forEach((key, i) => {
+                const action = shuffled[i];
+                map[key] = action;
+                reverse[action] = key;
+            });
+            return { map, reverse };
+        }
+
+        function getDefaultMapping() {
+            const map = { 'W':'立正', 'X':'稍息', 'K':'跨立', 'J':'敬礼', 'A':'向左转', 'D':'向右转', 'S':'向后转', 'Q':'礼毕' };
+            const reverse = {};
+            for (let k in map) reverse[map[k]] = k;
+            return { map, reverse };
+        }
+
+        function resetQueueCleanly(difficulty) {
+            qState.round = 0;
+            qState.currentAction = null;
+            qState.facing = 0;
+            qState.isWaiting = false;
+            qState.isProcessing = false;
+            qState.pendingSalute = false;
+            qState.pendingAttention = false;
+            qState.lastAction = null;
+            qState.turnStreak = 0;
+            qState.score = 0;
+            qState.correctCount = 0;
+            qState.active = true;
+            qState.difficulty = difficulty || 'classic';
+            qState.timeLimit = (qState.difficulty === 'hard') ? 2.5 : 4.0;
+
+            if (qState.timerInterval) {
+                clearInterval(qState.timerInterval);
+                qState.timerInterval = null;
+            }
+
+            if (qState.difficulty === 'hard') {
+                const gen = generateRandomMapping();
+                qState.keyMap = gen.map; qState.actionKeys = gen.reverse;
+            } else {
+                const def = getDefaultMapping();
+                qState.keyMap = def.map; qState.actionKeys = def.reverse;
+            }
+
+            $('queue-instructor-img').src = '正常.png';
+            $('queue-speech').textContent = '准备训练';
+            $('queue-speech-sub').textContent = '等待指令...';
+            $('queue-action-img').src = WAIT_IMAGE;
+            $('queue-action-label').textContent = '等待';
+            $('queue-facing').textContent = '向前';
+            $('queue-timer').textContent = '0.00';
+            $('queue-round').textContent = '0/20';
+            $('queue-progress').style.width = '0%';
+            $('queue-feedback').textContent = '等待教官口令...';
+            $('queue-feedback').className = 'feedback-area';
+            $('queue-status').textContent = '⏳ 等待';
+            $('queue-status').className = 'status-badge';
+            $('queue-mode-label').textContent = qState.difficulty === 'hard' ? '队列训练 (困难 - 享奖励加分)' : '队列训练 (经典)';
+        }
+
+        function getQFacingText(f) { return ['向前','向左','向后','向右'][f] || '向前'; }
+        function qRequiresFront(action) { return Q_FRONT_REQUIRED.includes(action); }
+        function qGetAllowed() {
+            if (qState.facing === 0) return Q_ACTIONS.filter(a => a !== '礼毕');
+            return Q_ACTIONS.filter(a => a !== '礼毕' && !qRequiresFront(a));
+        }
+
+        function qApplyTurn(action) {
+            if (action === '向左转') qState.facing = (qState.facing + 1) % 4;
+            else if (action === '向右转') qState.facing = (qState.facing + 3) % 4;
+            else if (action === '向后转') qState.facing = (qState.facing + 2) % 4;
+            $('queue-facing').textContent = getQFacingText(qState.facing);
+            $('queue-action-img').src = DIR_IMG_MAP[qState.facing] || WAIT_IMAGE;
+            $('queue-action-label').textContent = getQFacingText(qState.facing);
+        }
+
+        function qUpdateUI() {
+            $('queue-round').textContent = qState.round + '/' + qState.totalRounds;
+            const pct = (qState.round / qState.totalRounds) * 100;
+            $('queue-progress').style.width = Math.min(pct, 100) + '%';
+            $('queue-facing').textContent = getQFacingText(qState.facing);
+        }
+
+        function triggerButtonPressEffect(btn) {
+            if (!btn) return;
+            btn.classList.add('btn-pressed');
+            setTimeout(() => { btn.classList.remove('btn-pressed'); }, 160);
+        }
+
+        function qRenderButtons(animateShuffle = false) {
+            const container = $('queue-actions');
+            container.innerHTML = '';
+            Q_KEYS.forEach((key, idx) => {
+                const action = qState.keyMap[key] || '?';
+                const btn = document.createElement('button');
+                btn.className = 'action-btn';
+                btn.dataset.action = action;
+                btn.dataset.key = key;
+                btn.innerHTML = `${action}<span class="key-hint-sm">[${key}]</span>`;
+
+                if (animateShuffle) {
+                    const rX = ((idx % 2 === 0 ? 1 : -1) * (10 + (idx * 3))) + 'px';
+                    const rR = ((idx % 2 === 0 ? 1 : -1) * (4 + idx * 1.2)) + 'deg';
+                    btn.style.setProperty('--sh-x', rX);
+                    btn.style.setProperty('--sh-r', rR);
+                    btn.classList.add('shuffling');
+                    btn.style.animationDelay = (idx * 0.02) + 's';
+                }
+
+                btn.addEventListener('click', function() {
+                    triggerButtonPressEffect(this);
+                    qHandlePlayerAction(action);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function qSetInstructorImage(type) {
+            const src = (type === 'perfect' || type === 'success') ? '正确.png' :
+                        (type === 'fail' || type === 'face-error' || type === 'wrong') ? '错误.png' : '正常.png';
+            $('queue-instructor-img').src = src;
+        }
+
+        function qSetFeedback(text, type='') {
+            const f = $('queue-feedback');
+            f.textContent = text; f.className = 'feedback-area ' + type;
+        }
+
+        function qSetStatus(text, type='') {
+            const s = $('queue-status');
+            s.textContent = text; s.className = 'status-badge ' + type;
+        }
+
+        function qStartTimer() {
+            if (qState.timerInterval) clearInterval(qState.timerInterval);
+            const start = performance.now();
+            qState.roundStart = start;
+            qState.timerInterval = setInterval(() => {
+                const elapsed = (performance.now() - start) / 1000;
+                $('queue-timer').textContent = elapsed.toFixed(2);
+                if (elapsed >= qState.timeLimit && qState.isWaiting && !qState.isProcessing) {
+                    qHandleTimeout();
+                }
+            }, 30);
+        }
+
+        function qStopTimer() {
+            if (qState.timerInterval) { clearInterval(qState.timerInterval); qState.timerInterval = null; }
+        }
+
+        function qNextRound() {
+            if (!qState.active) return;
+            if (qState.round >= qState.totalRounds) { qFinishTraining(); return; }
+
+            qState.isProcessing = false;
+            qState.isWaiting = false;
+            document.querySelectorAll('#queue-actions .action-btn').forEach(b => {
+                b.classList.remove('correct','wrong','face-error','shuffling','btn-pressed');
+                b.disabled = true;
+            });
+
+            if (qState.difficulty === 'hard') {
+                const gen = generateRandomMapping();
+                qState.keyMap = gen.map; qState.actionKeys = gen.reverse;
+                qRenderButtons(true);
+            }
+
+            let action;
+            if (qState.pendingSalute) {
+                action = '礼毕'; qState.pendingSalute = false;
+            } else if (qState.pendingAttention) {
+                action = '立正'; qState.pendingAttention = false;
+            } else {
+                const allowed = qGetAllowed();
+                action = allowed[Math.floor(Math.random() * allowed.length)];
+            }
+            qState.currentAction = action;
+
+            qUpdateUI();
+            qSetStatus('⏳ 听口令', '');
+            qSetInstructorImage('normal');
+            $('queue-action-label').textContent = action;
+            $('queue-speech').textContent = action + '！';
+
+            setTimeout(() => {
+                if (!qState.active) return;
+                qState.isWaiting = true;
+                document.querySelectorAll('#queue-actions .action-btn').forEach(b => b.disabled = false);
+                qSetStatus('⚡ 执行！', '');
+                qSetFeedback(`👉 下达动作：「${action}」！`, '');
+                qStartTimer();
+            }, 600);
+        }
+
+        function qHandlePlayerAction(action) {
+            if (!qState.isWaiting || qState.isProcessing || !qState.active) return;
+
+            if (qRequiresFront(action) && qState.facing !== 0) {
+                qState.isProcessing = true; qState.isWaiting = false;
+                qStopTimer();
+                qSetFeedback(`🧭 朝向错误！`, 'face-error');
+                qSetStatus('🧭 违规', 'fail');
+                qSetInstructorImage('wrong');
+                qState.round++;
+                qUpdateUI();
+                setTimeout(() => { if (qState.active) qNextRound(); }, 850);
+                return;
+            }
+
+            if (action !== qState.currentAction) {
+                qState.isProcessing = true; qState.isWaiting = false;
+                qStopTimer();
+                qSetFeedback(`❌ 动作错误！`, 'fail');
+                qSetStatus('❌ 错误', 'fail');
+                qSetInstructorImage('wrong');
+                qState.round++;
+                qUpdateUI();
+                setTimeout(() => { if (qState.active) qNextRound(); }, 850);
+                return;
+            }
+
+            qState.isProcessing = true; qState.isWaiting = false;
+            qStopTimer();
+            const elapsed = (performance.now() - qState.roundStart) / 1000;
+            $('queue-timer').textContent = elapsed.toFixed(2);
+
+            if (Q_TURN.includes(action)) qApplyTurn(action);
+            else {
+                $('queue-action-img').src = ACTION_IMG_MAP[action] || WAIT_IMAGE;
+                $('queue-action-label').textContent = action;
+            }
+
+            if (action === '敬礼') qState.pendingSalute = true;
+            if (action === '跨立' || action === '稍息') qState.pendingAttention = true;
+
+            let pts = elapsed < 0.8 ? 10 : (elapsed < 1.6 ? 8 : 5);
+            // 困难模式答对每轮享有额外加分 (+3分)
+            const hardBonus = qState.difficulty === 'hard' ? 3 : 0;
+            const totalRoundPts = pts + hardBonus;
+
+            qState.score += totalRoundPts;
+            qState.correctCount++;
+
+            qSetFeedback(`✅ 正确！+${totalRoundPts}分 ${hardBonus ? '(含困难奖励)' : ''} (${elapsed.toFixed(2)}s)`, 'success');
+            qSetStatus('⭐ 达成', 'success');
+            qSetInstructorImage('success');
+            qState.round++;
+            qUpdateUI();
+            setTimeout(() => { if (qState.active) qNextRound(); }, 800);
+        }
+
+        function qHandleTimeout() {
+            if (!qState.isWaiting || qState.isProcessing || !qState.active) return;
+            qState.isProcessing = true; qState.isWaiting = false;
+            qStopTimer();
+            qSetFeedback(`⏰ 动作迟缓，口令超时！`, 'fail');
+            qSetStatus('⏰ 超时', 'fail');
+            qSetInstructorImage('wrong');
+            qState.round++;
+            qUpdateUI();
+            setTimeout(() => { if (qState.active) qNextRound(); }, 850);
+        }
+
+        function qFinishTraining() {
+            qState.active = false;
+            qStopTimer();
+            // 结算：基础耐力技巧提升（困难模式享有更高收益上限）
+            let staminaGain = Math.min(12, Math.floor(qState.score / 20) + 2);
+            let skillGain = Math.min(12, Math.floor(qState.score / 20) + 2);
+            
+            // 困难模式专项额外属性加成（耐力+4, 技巧+5）
+            if (qState.difficulty === 'hard') {
+                staminaGain += 4;
+                skillGain += 5;
+            }
+
+            addStamina(staminaGain);
+            addSkill(skillGain);
+            qSetFeedback(`训练完成！耐力+${staminaGain}，技巧+${skillGain}${qState.difficulty==='hard'?' (含困难加成)':''}`, 'success');
+            qSetStatus('✅ 结课', 'success');
+            setTimeout(goToMain, 1800);
+        }
+
+        function startQueueTraining(difficulty) {
+            if (!consumeEnergy(G.queueCost)) { alert('体力不足！请休整后再来。'); return; }
+            resetQueueCleanly(difficulty);
+            showScreen('queue-screen');
+            qRenderButtons(difficulty === 'hard');
+            qUpdateUI();
+            setTimeout(() => { if (qState.active) qNextRound(); }, 800);
+        }
+
+        // ============================================================
+        //  2. 射击训练 (误伤扣除团队分，超3个扣光)
+        // ============================================================
+        let shooting = {
+            active: false, ctx: null, targets: [],
+            floatingTexts: [], particles: [], score: 0, hits: 0, friendlyHits: 0,
+            countdown: 30, timerInterval: null, animFrame: null,
+            width: 600, height: 450, running: false,
+        };
+
+        const ROW_CONFIG = {
+            4: { y: 165, scale: 0.50, hitBody: 14, hitHead: 20 },
+            3: { y: 220, scale: 0.68, hitBody: 12, hitHead: 18 },
+            2: { y: 280, scale: 0.88, hitBody: 11, hitHead: 15 },
+            1: { y: 350, scale: 1.10, hitBody: 10, hitHead: 13 },
+        };
+
+        function initShooting() {
+            const canvas = $('shooting-canvas');
+            shooting.ctx = canvas.getContext('2d');
+            shooting.width = canvas.width;
+            shooting.height = canvas.height;
+            drawShootingFrame();
+        }
+
+        function resetShootingCleanly() {
+            shooting.running = false;
+            shooting.active = false;
+            if (shooting.timerInterval) clearInterval(shooting.timerInterval);
+            if (shooting.animFrame) cancelAnimationFrame(shooting.animFrame);
+            $('shooting-canvas').onclick = null;
+
+            shooting.score = 0;
+            shooting.hits = 0;
+            shooting.friendlyHits = 0;
+            shooting.countdown = 30;
+            shooting.targets = [];
+            shooting.particles = [];
+            shooting.floatingTexts = [];
+
+            $('shooting-score').textContent = '0';
+            $('shooting-hit').textContent = '0';
+            $('shooting-friendly').textContent = '0';
+            $('shooting-countdown').textContent = '30';
+            $('shooting-start').style.display = 'inline-block';
+            $('shooting-end').style.display = 'none';
+            $('shooting-info').textContent = '🎯 命中敌人越远，得分越高，避开友军！';
+            drawShootingFrame();
+        }
+
+        function drawShootingScenery() {
+            const ctx = shooting.ctx;
+            if (!ctx) return;
+            const w = shooting.width, h = shooting.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const sky = ctx.createLinearGradient(0, 0, 0, 150);
+            sky.addColorStop(0, '#0e1c08');
+            sky.addColorStop(1, '#253d18');
+            ctx.fillStyle = sky;
+            ctx.fillRect(0, 0, w, 150);
+
+            ctx.fillStyle = '#1b2f12'; ctx.fillRect(0, 140, w, 50);
+            ctx.fillStyle = '#223c17'; ctx.fillRect(0, 190, w, 55);
+            ctx.fillStyle = '#29471c'; ctx.fillRect(0, 245, w, 65);
+            ctx.fillStyle = '#1e3513'; ctx.fillRect(0, 310, w, h - 310);
+
+            ctx.fillStyle = '#302316';
+            ctx.fillRect(80, 165, 60, 16); ctx.fillRect(270, 165, 70, 16); ctx.fillRect(450, 165, 65, 16);
+            ctx.fillStyle = '#3d2e1c';
+            ctx.fillRect(50, 220, 80, 22); ctx.fillRect(220, 220, 90, 22); ctx.fillRect(410, 220, 85, 22);
+            ctx.fillStyle = '#4c3924';
+            ctx.fillRect(120, 280, 110, 28); ctx.fillRect(350, 280, 120, 28);
+            ctx.fillStyle = '#5c462c';
+            ctx.fillRect(40, 350, 130, 38); ctx.fillRect(230, 350, 140, 38); ctx.fillRect(440, 350, 125, 38);
+        }
+
+        function refreshShootingTargets() {
+            shooting.targets.forEach(t => {
+                if (t.animState !== 'despawn') t.animState = 'hiding';
+            });
+
+            const spots = [
+                { row:4, x: 110 }, { row:4, x: 305 }, { row:4, x: 480 },
+                { row:3, x: 90 },  { row:3, x: 265 }, { row:3, x: 450 },
+                { row:2, x: 175 }, { row:2, x: 410 },
+                { row:1, x: 105 }, { row:1, x: 300 }, { row:1, x: 500 },
+            ];
+            const shuffled = shuffleArray(spots);
+
+            for (let i = 0; i < 4; i++) {
+                const s = shuffled[i];
+                const cfg = ROW_CONFIG[s.row];
+                shooting.targets.push({
+                    x: s.x, y: cfg.y, row: s.row, scale: cfg.scale,
+                    isEnemy: true,
+                    popProgress: 0,
+                    animState: 'rising',
+                    hitBodyPts: cfg.hitBody,
+                    hitHeadPts: cfg.hitHead
+                });
+            }
+
+            const sFriend = shuffled[4];
+            const cfgF = ROW_CONFIG[sFriend.row];
+            shooting.targets.push({
+                x: sFriend.x, y: cfgF.y, row: sFriend.row, scale: cfgF.scale,
+                isEnemy: false,
+                popProgress: 0,
+                animState: 'rising',
+                hitBodyPts: -15, hitHeadPts: -20
+            });
+        }
+
+        function createExplosionParticles(x, y, isEnemy) {
+            const count = isEnemy ? 18 : 12;
+            const baseColor = isEnemy ? ['#ff5722', '#ffeb3b', '#ff9800', '#d84315'] : ['#2196f3', '#00bcd4', '#e0e0e0'];
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1.5 + Math.random() * 4.5;
+                shooting.particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1.2,
+                    radius: 2 + Math.random() * 3,
+                    alpha: 1,
+                    color: baseColor[Math.floor(Math.random() * baseColor.length)],
+                    decay: 0.035 + Math.random() * 0.03
+                });
+            }
+        }
+
+        function drawTargetUnit(u) {
+            const ctx = shooting.ctx;
+            const sc = u.scale;
+            const fullH = 68 * sc;
+            const currentH = fullH * u.popProgress;
+            if (currentH <= 2) return;
+
+            const x = u.x;
+            const y = u.y;
+            const topY = y - currentH;
+
+            const isEnemy = u.isEnemy;
+            const img = isEnemy ? Assets.enemyImg : Assets.friendImg;
+            const loaded = isEnemy ? Assets.isEnemyLoaded : Assets.isFriendLoaded;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x - 30*sc, topY, 60*sc, currentH);
+            ctx.clip();
+
+            if (loaded && img.naturalWidth > 0) {
+                ctx.drawImage(img, x - 24*sc, y - fullH, 48*sc, fullH);
+            } else {
+                const col = isEnemy ? '#b71c1c' : '#1565c0';
+                ctx.fillStyle = col;
+                ctx.beginPath();
+                ctx.roundRect(x - 16*sc, y - fullH + 20*sc, 32*sc, 45*sc, 5*sc);
+                ctx.fill();
+
+                ctx.fillStyle = isEnemy ? '#e53935' : '#1e88e5';
+                ctx.beginPath();
+                ctx.arc(x, y - fullH + 11*sc, 11*sc, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${Math.floor(10*sc)}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(isEnemy ? '敌' : '友', x, y - fullH + 11*sc);
+            }
+            ctx.restore();
+        }
+
+        function drawShootingFrame() {
+            drawShootingScenery();
+            const ctx = shooting.ctx;
+            if (!ctx) return;
+
+            for (let i = shooting.targets.length - 1; i >= 0; i--) {
+                const t = shooting.targets[i];
+                if (t.animState === 'rising') {
+                    t.popProgress += 0.08;
+                    if (t.popProgress >= 1) {
+                        t.popProgress = 1;
+                        t.animState = 'idle';
+                    }
+                } else if (t.animState === 'hiding') {
+                    t.popProgress -= 0.1;
+                    if (t.popProgress <= 0) {
+                        t.popProgress = 0;
+                        t.animState = 'despawn';
+                        shooting.targets.splice(i, 1);
+                        continue;
+                    }
+                }
+            }
+
+            shooting.targets.sort((a,b) => b.row - a.row);
+            shooting.targets.forEach(t => drawTargetUnit(t));
+
+            for (let i = shooting.particles.length - 1; i >= 0; i--) {
+                const p = shooting.particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.vy += 0.12;
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) { shooting.particles.splice(i, 1); continue; }
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            for (let i = shooting.floatingTexts.length - 1; i >= 0; i--) {
+                const ft = shooting.floatingTexts[i];
+                ft.y -= 1.2;
+                ft.alpha -= 0.025;
+                if (ft.alpha <= 0) { shooting.floatingTexts.splice(i, 1); continue; }
+                ctx.save();
+                ctx.globalAlpha = ft.alpha;
+                ctx.fillStyle = ft.color;
+                ctx.font = 'bold 15px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.shadowBlur = 4; ctx.shadowColor = '#000';
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            }
+
+            if (shooting.running) {
+                shooting.animFrame = requestAnimationFrame(drawShootingFrame);
+            }
+        }
+
+        function handleShootingClick(e) {
+            if (!shooting.running) return;
+            const rect = $('shooting-canvas').getBoundingClientRect();
+            const scaleX = shooting.width / rect.width;
+            const scaleY = shooting.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            let hit = false;
+            const activeTargets = shooting.targets
+                .filter(t => t.popProgress > 0.4 && t.animState !== 'despawn')
+                .sort((a,b) => a.row - b.row);
+
+            for (let i = 0; i < activeTargets.length; i++) {
+                const t = activeTargets[i];
+                const sc = t.scale;
+                const fullH = 68 * sc;
+                const topY = t.y - fullH * t.popProgress;
+                const headY = t.y - fullH + 11*sc;
+
+                if (my < topY || my > t.y) continue;
+
+                if (Math.hypot(mx - t.x, my - headY) <= 12*sc) {
+                    if (t.isEnemy) {
+                        const pts = t.hitHeadPts;
+                        shooting.score += pts;
+                        shooting.hits++;
+                        createExplosionParticles(t.x, headY, true);
+                        shooting.floatingTexts.push({ text: `🎯 爆头! +${pts}`, x: t.x, y: headY, alpha: 1, color: '#ffdf58' });
+                    } else {
+                        shooting.friendlyHits++;
+                        shooting.score = Math.max(0, shooting.score - 20);
+                        createExplosionParticles(t.x, headY, false);
+                        shooting.floatingTexts.push({ text: '🚫 误伤友军! ', x: t.x, y: headY, alpha: 1, color: '#ff4c4c' });
+                    }
+                    t.animState = 'hiding';
+                    hit = true;
+                    break;
+                }
+
+                if (mx >= t.x - 18*sc && mx <= t.x + 18*sc) {
+                    if (t.isEnemy) {
+                        const pts = t.hitBodyPts;
+                        shooting.score += pts;
+                        shooting.hits++;
+                        createExplosionParticles(t.x, my, true);
+                        shooting.floatingTexts.push({ text: `💥 命中! +${pts}`, x: t.x, y: topY, alpha: 1, color: '#7ddf7d' });
+                    } else {
+                        shooting.friendlyHits++;
+                        shooting.score = Math.max(0, shooting.score - 20);
+                        createExplosionParticles(t.x, my, false);
+                        shooting.floatingTexts.push({ text: '🚫 误伤友军! 严扣团队!', x: t.x, y: topY, alpha: 1, color: '#ff4c4c' });
+                    }
+                    t.animState = 'hiding';
+                    hit = true;
+                    break;
+                }
+            }
+
+            if (hit) {
+                $('shooting-score').textContent = shooting.score;
+                $('shooting-hit').textContent = shooting.hits;
+                $('shooting-friendly').textContent = shooting.friendlyHits;
+                const remainingEnemies = shooting.targets.filter(t => t.isEnemy && t.animState !== 'hiding');
+                if (remainingEnemies.length <= 1) {
+                    setTimeout(refreshShootingTargets, 280);
+                }
+            }
+        }
+
+        function startShooting() {
+            if (!consumeEnergy(G.shootingCost)) { alert('体力不足！'); return; }
+            shooting.active = true;
+            shooting.running = true;
+            shooting.score = 0; shooting.hits = 0; shooting.friendlyHits = 0;
+            shooting.countdown = 30;
+            shooting.targets = [];
+            shooting.particles = [];
+            shooting.floatingTexts = [];
+
+            $('shooting-countdown').textContent = '30';
+            $('shooting-score').textContent = '0';
+            $('shooting-hit').textContent = '0';
+            $('shooting-friendly').textContent = '0';
+            $('shooting-start').style.display = 'none';
+            $('shooting-end').style.display = 'inline-block';
+
+            refreshShootingTargets();
+            drawShootingFrame();
+
+            if (shooting.timerInterval) clearInterval(shooting.timerInterval);
+            shooting.timerInterval = setInterval(() => {
+                shooting.countdown--;
+                $('shooting-countdown').textContent = shooting.countdown;
+                if (shooting.countdown % 4 === 0 && shooting.countdown > 0) {
+                    refreshShootingTargets();
+                }
+                if (shooting.countdown <= 0) {
+                    endShooting(true);
+                }
+            }, 1000);
+
+            $('shooting-canvas').onclick = handleShootingClick;
+        }
+
+        function endShooting(timeUp = false) {
+            if (!shooting.active) return;
+            shooting.running = false;
+            shooting.active = false;
+            clearInterval(shooting.timerInterval);
+            if (shooting.animFrame) cancelAnimationFrame(shooting.animFrame);
+            $('shooting-canvas').onclick = null;
+            $('shooting-start').style.display = 'inline-block';
+            $('shooting-end').style.display = 'none';
+
+            const score = shooting.score;
+            const friendlies = shooting.friendlyHits;
+
+            // 基础技巧收益
+            let skillGain = Math.min(20, Math.floor(score / 18) + 3);
+            // 基础团队收益
+            let teamGain = Math.max(0, Math.min(12, Math.floor(score / 22) + 3));
+
+            // 误伤惩罚逻辑：
+            let friendlyPenaltyMsg = '';
+            if (friendlies >= 3) {
+                // 严重事故：扣光当前已有团队分！
+                G.team = 0;
+                teamGain = 0;
+                friendlyPenaltyMsg = `\n⚠️【重大事故通报】误伤友军达 ${friendlies} 人！严重违反战场纪律，现有团队积分已全部被清零！`;
+            } else if (friendlies > 0) {
+                // 扣除本局团队收益并反扣当前团队分
+                const teamDeduct = friendlies * 4;
+                G.team = Math.max(0, G.team - teamDeduct);
+                teamGain = 0;
+                friendlyPenaltyMsg = `\n🚫 误伤友军 ${friendlies} 人，团队协作收益归零，并倒扣已有团队分 -${teamDeduct}！`;
+            } else {
+                addTeam(teamGain);
+            }
+
+            addSkill(skillGain);
+
+            alert(`${timeUp ? '⏱️ 演练时间到！' : '撤收！'}\n战术射击得分: ${score}\n技巧+${skillGain}，团队+${teamGain}${friendlyPenaltyMsg}`);
+            goToMain();
+        }
+
+        // ============================================================
+        //  3. 耐力训练 (追尾立即中止)
+        // ============================================================
+        let endurance = {
+            active: false, ctx: null, snake: [], direction: {x:1,y:0}, nextDirection: {x:1,y:0},
+            obstacles: [], flags: [], horns: [],
+            steps: 0, flagsGathered: 0, time: 0, timerInterval: null, startTime: 0, speed: 180,
+            gameOver: false, width: 600, height: 450, cellSize: 20, cols: 30, rows: 22,
+            boostTimer: null, moveInterval: null,
+        };
+
+        function initEndurance() {
+            const canvas = $('endurance-canvas');
+            endurance.ctx = canvas.getContext('2d');
+            endurance.width = canvas.width;
+            endurance.height = canvas.height;
+            endurance.cols = Math.floor(endurance.width / endurance.cellSize);
+            endurance.rows = Math.floor(endurance.height / endurance.cellSize);
+        }
+
+        function resetEnduranceCleanly() {
+            endurance.active = false;
+            endurance.gameOver = false;
+            if (endurance.timerInterval) clearInterval(endurance.timerInterval);
+            if (endurance.moveInterval) clearInterval(endurance.moveInterval);
+            if (endurance.boostTimer) clearTimeout(endurance.boostTimer);
+            window.removeEventListener('keydown', enduranceKeyHandler);
+
+            initEndurance();
+
+            const cols = endurance.cols, rows = endurance.rows;
+            const startX = Math.floor(cols / 2), startY = Math.floor(rows / 2);
+            endurance.snake = [{x: startX, y: startY}, {x: startX-1, y: startY}, {x: startX-2, y: startY}];
+            endurance.direction = {x:1, y:0};
+            endurance.nextDirection = {x:1, y:0};
+            endurance.steps = 0;
+            endurance.flagsGathered = 0;
+            endurance.time = 0;
+            endurance.speed = 180;
+
+            endurance.obstacles = [];
+            for (let i = 0; i < 14; i++) {
+                let pos;
+                do {
+                    pos = {x: Math.floor(Math.random()*cols), y: Math.floor(Math.random()*rows)};
+                } while (endurance.snake.some(s => s.x===pos.x && s.y===pos.y) || endurance.obstacles.some(o => o.x===pos.x && o.y===pos.y));
+                endurance.obstacles.push(pos);
+            }
+
+            endurance.flags = [];
+            endurance.horns = [];
+            for (let i = 0; i < 3; i++) spawnSingleFlag();
+            for (let i = 0; i < 2; i++) spawnSingleHorn();
+
+            $('endurance-length').textContent = '3';
+            $('endurance-steps').textContent = '0';
+            $('endurance-time').textContent = '0';
+            $('endurance-flag-count').textContent = '0';
+            $('endurance-start').style.display = 'inline-block';
+            $('endurance-end').style.display = 'none';
+            drawEndurance();
+        }
+
+        function spawnSingleFlag() {
+            let p;
+            do {
+                p = {x: Math.floor(Math.random() * endurance.cols), y: Math.floor(Math.random() * endurance.rows)};
+            } while (endurance.snake.some(s=>s.x===p.x&&s.y===p.y) || endurance.obstacles.some(o=>o.x===p.x&&o.y===p.y) || endurance.flags.some(f=>f.x===p.x&&f.y===p.y));
+            endurance.flags.push(p);
+        }
+
+        function spawnSingleHorn() {
+            let p;
+            do {
+                p = {x: Math.floor(Math.random() * endurance.cols), y: Math.floor(Math.random() * endurance.rows)};
+            } while (endurance.snake.some(s=>s.x===p.x&&s.y===p.y) || endurance.obstacles.some(o=>o.x===p.x&&o.y===p.y) || endurance.horns.some(h=>h.x===p.x&&h.y===p.y));
+            endurance.horns.push(p);
+        }
+
+        function drawEndurance() {
+            const ctx = endurance.ctx;
+            if (!ctx) return;
+            const w = endurance.width, h = endurance.height, cell = endurance.cellSize;
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.fillStyle = '#0f1c0a';
+            ctx.fillRect(0, 0, w, h);
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 0.5;
+            for (let x = 0; x <= w; x += cell) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+            for (let y = 0; y <= h; y += cell) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+
+            endurance.obstacles.forEach(o => {
+                const ox = o.x * cell, oy = o.y * cell;
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(ox, oy, cell, cell);
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(ox, oy); ctx.lineTo(ox + cell*0.5, oy); ctx.lineTo(ox, oy + cell*0.5); ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(ox+cell, oy); ctx.lineTo(ox+cell, oy+cell*0.5); ctx.lineTo(ox+cell*0.5, oy+cell); ctx.lineTo(ox, oy+cell); ctx.fill();
+                ctx.strokeStyle = '#fef08a';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(ox, oy, cell, cell);
+            });
+
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            endurance.flags.forEach(fl => ctx.fillText('🚩', fl.x*cell + cell/2, fl.y*cell + cell/2));
+            endurance.horns.forEach(hn => ctx.fillText('📯', hn.x*cell + cell/2, hn.y*cell + cell/2));
+
+            const movingLeft = endurance.direction.x < 0;
+            const soldierImg = movingLeft ? Assets.soldierLeft : Assets.soldierRight;
+            const isImgReady = movingLeft ? Assets.isSoldierLeftLoaded : Assets.isSoldierRightLoaded;
+
+            for (let i = 0; i < endurance.snake.length; i++) {
+                const seg = endurance.snake[i];
+                const sx = seg.x * cell, sy = seg.y * cell;
+                const isHead = (i === 0);
+
+                if (isImgReady && soldierImg.naturalWidth > 0) {
+                    ctx.drawImage(soldierImg, sx, sy, cell, cell);
+                } else {
+                    ctx.fillStyle = isHead ? '#86efac' : '#3b7c25';
+                    ctx.beginPath();
+                    ctx.roundRect(sx+1, sy+1, cell-2, cell-2, 4);
+                    ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.font = isHead ? 'bold 11px sans-serif' : '9px sans-serif';
+                    ctx.fillText(isHead ? '★' : '•', sx + cell/2, sy + cell/2);
+                }
+            }
+
+            $('endurance-length').textContent = endurance.snake.length;
+            $('endurance-steps').textContent = endurance.steps;
+            $('endurance-time').textContent = Math.floor(endurance.time);
+            $('endurance-flag-count').textContent = endurance.flagsGathered;
+        }
+
+        function moveEndurance() {
+            if (endurance.gameOver || !endurance.active) return;
+            const head = endurance.snake[0];
+            const dir = endurance.direction;
+            const newHead = {x: head.x + dir.x, y: head.y + dir.y};
+
+            // 1. 撞外围警示边界直接中止
+            if (newHead.x < 0 || newHead.x >= endurance.cols || newHead.y < 0 || newHead.y >= endurance.rows) {
+                endEnduranceGame('出界！'); return;
+            }
+
+            // 2. 撞路障直接中止
+            if (endurance.obstacles.some(o => o.x === newHead.x && o.y === newHead.y)) {
+                endEnduranceGame('撞上障碍！'); return;
+            }
+
+            // 3. 追尾（头碰到身子）立即中止训练！
+            for (let i = 1; i < endurance.snake.length; i++) {
+                if (endurance.snake[i].x === newHead.x && endurance.snake[i].y === newHead.y) {
+                    endEnduranceGame('追尾事故！');
+                    return;
+                }
+            }
+
+            let ateFlag = false;
+            for (let i = 0; i < endurance.flags.length; i++) {
+                if (endurance.flags[i].x === newHead.x && endurance.flags[i].y === newHead.y) {
+                    ateFlag = true;
+                    endurance.flagsGathered++;
+                    endurance.flags.splice(i, 1);
+                    const tail = endurance.snake[endurance.snake.length - 1];
+                    endurance.snake.push({x: tail.x, y: tail.y});
+                    spawnSingleFlag();
+                    break;
+                }
+            }
+
+            for (let i = 0; i < endurance.horns.length; i++) {
+                if (endurance.horns[i].x === newHead.x && endurance.horns[i].y === newHead.y) {
+                    endurance.horns.splice(i, 1);
+                    if (endurance.boostTimer) clearTimeout(endurance.boostTimer);
+                    endurance.speed = Math.max(90, endurance.speed - 50);
+                    clearInterval(endurance.moveInterval);
+                    endurance.moveInterval = setInterval(stepEndurance, endurance.speed);
+                    endurance.boostTimer = setTimeout(() => {
+                        endurance.speed = 180;
+                        if (endurance.active && !endurance.gameOver) {
+                            clearInterval(endurance.moveInterval);
+                            endurance.moveInterval = setInterval(stepEndurance, endurance.speed);
+                        }
+                    }, 4000);
+                    spawnSingleHorn();
+                    break;
+                }
+            }
+
+            endurance.snake.unshift(newHead);
+            if (!ateFlag) endurance.snake.pop();
+            endurance.steps++;
+            drawEndurance();
+        }
+
+        function stepEndurance() {
+            if (!endurance.gameOver && endurance.active) {
+                endurance.direction = endurance.nextDirection;
+                moveEndurance();
+            }
+        }
+
+        function endEnduranceGame(reason = '') {
+            if (endurance.gameOver) return;
+            endurance.gameOver = true;
+            endurance.active = false;
+            clearInterval(endurance.timerInterval);
+            if (endurance.boostTimer) clearTimeout(endurance.boostTimer);
+            clearInterval(endurance.moveInterval);
+            window.removeEventListener('keydown', enduranceKeyHandler);
+
+            const steps = endurance.steps;
+            const length = endurance.snake.length;
+            const survivalTime = Math.floor(endurance.time);
+            const flags = endurance.flagsGathered;
+
+            // 紧凑分值
+            let staminaGain = Math.min(20, Math.floor(steps / 9) + flags + 2);
+            let teamGain = Math.min(20, Math.floor((length - 3) * 1.5) + flags + 2);
+            let skillGain = Math.min(10, Math.floor(survivalTime / 6) + flags + 2);
+
+            addStamina(staminaGain);
+            addSkill(skillGain);
+            addTeam(teamGain);
+
+            $('endurance-start').style.display = 'inline-block';
+            $('endurance-end').style.display = 'none';
+            alert(`拉练结课（${reason}）！\n🏃 步数(里程): ${steps} -> 耐力+${staminaGain}\n👥 队伍编制: ${length}人 -> 团队+${teamGain}\n⏱️ 行军时长: ${survivalTime}秒 -> 技巧+${skillGain}`);
+            goToMain();
+        }
+
+        function enduranceKeyHandler(e) {
+            const k = e.key.toLowerCase();
+            if (!endurance.active || endurance.gameOver) return;
+            const dir = endurance.direction;
+
+            if ((k === 'arrowup' || k === 'w') && dir.y !== 1) {
+                e.preventDefault(); endurance.nextDirection = {x:0, y:-1};
+            } else if ((k === 'arrowdown' || k === 's') && dir.y !== -1) {
+                e.preventDefault(); endurance.nextDirection = {x:0, y:1};
+            } else if ((k === 'arrowleft' || k === 'a') && dir.x !== 1) {
+                e.preventDefault(); endurance.nextDirection = {x:-1, y:0};
+            } else if ((k === 'arrowright' || k === 'd') && dir.x !== -1) {
+                e.preventDefault(); endurance.nextDirection = {x:1, y:0};
+            }
+        }
+
+        function openEnduranceScreen() {
+            showScreen('endurance-screen');
+            setTimeout(() => {
+                resetEnduranceCleanly();
+            }, 30);
+        }
+
+        function startEnduranceActual() {
+            if (!consumeEnergy(G.enduranceCost)) {
+                alert('体力不足！无法进行全向拉练。');
+                return;
+            }
+            endurance.active = true;
+            endurance.gameOver = false;
+            $('endurance-start').style.display = 'none';
+            $('endurance-end').style.display = 'inline-block';
+            endurance.startTime = performance.now();
+
+            if (endurance.timerInterval) clearInterval(endurance.timerInterval);
+            endurance.timerInterval = setInterval(() => {
+                endurance.time = (performance.now() - endurance.startTime) / 1000;
+                $('endurance-time').textContent = Math.floor(endurance.time);
+            }, 200);
+
+            if (endurance.moveInterval) clearInterval(endurance.moveInterval);
+            endurance.moveInterval = setInterval(stepEndurance, endurance.speed);
+            window.addEventListener('keydown', enduranceKeyHandler);
+        }
+
+        // ============================================================
+        //  休息与结局鉴定
+        // ============================================================
+        function takeRest() {
+            if (G.day >= G.maxDay) {
+                G.energy = G.maxEnergy;
+                showEndScreen();
+                return;
+            }
+            G.day++;
+            G.energy = G.maxEnergy;
+            $('rest-next-day').textContent = G.day;
+            showScreen('rest-screen');
+        }
+
+        function showEndScreen() {
+            G.gameEnded = true;
+            const s = G.stamina, sk = G.skill, t = G.team;
+            const total = s + sk + t;
+            $('end-stamina').textContent = s;
+            $('end-skill').textContent = sk;
+            $('end-team').textContent = t;
+
+            let rank, icon, msg;
+
+            if (s >= 70 && sk >= 70 && t >= 70) {
+                rank = '👑 百战兵王';
+                icon = '🎖️';
+                msg = '【巅峰军魂 · 举世无双】耐力突破极限、枪法百步穿杨、团队凝聚如铁！三天内每一项科目你都展现出了极致的风貌，当之无愧地荣登全军巅峰“百战兵王”！';
+            } else if (total >= 150 && s >= 40 && sk >= 40 && t >= 40) {
+                rank = '⭐ 强军模范';
+                icon = '🏅';
+                msg = '【中流砥柱 · 战友榜样】体魄过硬、动作标拔、实弹演练弹无虚发！各科成绩均位列前茅，你已然是全营瞩目的战术尖刀。';
+            } else if (total >= 90) {
+                rank = '📯 合格尖兵';
+                icon = '💂';
+                msg = '【基石之质 · 作风扎实】三天的实战化训练磨去了青涩与胆怯。虽然在个别高强度科目中稍有起伏，但各已是保家卫国的坚实中坚！';
+            } else if (total >= 45) {
+                rank = '🎖️ 勉强达标';
+                icon = '🏕️';
+                msg = '【尚欠火候 · 险中过关】行伍征程犹如逆水行舟，切勿浅尝辄止，仍需潜心磨炼！';
+            } else {
+                rank = '💤 虚无度日';
+                icon = '🍂';
+                msg = '【虚掷韶华 · 碌碌无为】你都干了些什么？';
+            }
+
+            $('end-icon').textContent = icon;
+            $('end-rank').textContent = rank;
+            $('end-message').textContent = msg;
+            showScreen('end-screen');
+        }
+
+        // ============================================================
+        //  事件总线
+        // ============================================================
+        $('btn-enter').onclick = () => { showScreen('main-screen'); updateMainUI(); };
+        $('btn-queue').onclick = () => showScreen('queue-mode-select');
+        $('queue-mode-classic').onclick = () => startQueueTraining('classic');
+        $('queue-mode-hard').onclick = () => startQueueTraining('hard');
+        $('queue-mode-back').onclick = goToMain;
+
+        $('btn-shooting').onclick = () => {
+            showScreen('shooting-screen');
+            initShooting();
+            resetShootingCleanly();
+        };
+        $('shooting-start').onclick = startShooting;
+        $('shooting-end').onclick = () => endShooting(false);
+        $('shooting-back').onclick = () => {
+            if (shooting.running) {
+                if (confirm('确认提前终止射击演练吗？')) endShooting(false);
+            } else {
+                resetShootingCleanly();
+                goToMain();
+            }
+        };
+
+        $('btn-endurance').onclick = openEnduranceScreen;
+        $('endurance-start').onclick = startEnduranceActual;
+        $('endurance-end').onclick = () => { if (confirm('就地中止拉练？')) endEnduranceGame('自主撤退'); };
+        $('endurance-back').onclick = () => {
+            if (endurance.active && !endurance.gameOver) {
+                if (confirm('确认退出当前拉练？')) endEnduranceGame('中途折返');
+            } else {
+                resetEnduranceCleanly();
+                goToMain();
+            }
+        };
+
+        $('btn-rest').onclick = takeRest;
+        $('rest-continue').onclick = () => { if (G.day > G.maxDay) showEndScreen(); else goToMain(); };
+
+        $('queue-back').onclick = () => {
+            if (confirm('中止训练？')) { qState.active = false; qStopTimer(); goToMain(); }
+        };
+        $('queue-exit').onclick = () => {
+            if (confirm('中止训练？')) { qState.active = false; qStopTimer(); goToMain(); }
+        };
+
+        $('end-retry').onclick = () => {
+            G.day = 1; G.energy = G.maxEnergy; G.stamina = 0; G.skill = 0; G.team = 0;
+            G.gameEnded = false;
+            showScreen('main-screen');
+            updateMainUI();
+        };
+        $('end-home').onclick = () => showScreen('start-screen');
+
+        window.addEventListener('keydown', (e) => {
+            const k = e.key.toUpperCase();
+            if (qState.active && qState.isWaiting) {
+                const action = qState.keyMap[k];
+                if (action) {
+                    e.preventDefault();
+                    const btn = document.querySelector(`#queue-actions .action-btn[data-key="${k}"]`);
+                    triggerButtonPressEffect(btn);
+                    qHandlePlayerAction(action);
+                }
+            }
+        });
+
+        showScreen('start-screen');
+        updateMainUI();
+    })();
+    </script>
+</body>
+</html>
