@@ -615,9 +615,9 @@
         }
 
         async function submitScore() {
-            const name = prompt('请输入您的姓名（必填）：');
+            const name = prompt('请输入您的昵称（必填）：');
             if (!name || name.trim() === '') {
-                alert('姓名不能为空！');
+                alert('昵称不能为空！');
                 return;
             }
             const jaccount = prompt('请输入您的 JAccount（选填，可直接确定）：') || '';
