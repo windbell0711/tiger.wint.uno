@@ -2,6 +2,7 @@
   "name": "tiger-wint-uno",
   "version": "1.0.0",
   "description": "mini game with leaderboard",
+  "type": "module",
   "dependencies": {
     "@neondatabase/serverless": "^0.9.4"
   }
