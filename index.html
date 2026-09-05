@@ -496,7 +496,7 @@
                     </thead>
                     <tbody id="leaderboard-tbody"></tbody>
                 </table>
-                <div id="leaderboard-empty" style="padding:20px; color:#8aa07a; font-size:14px;">暂无数据</div>
+                <div id="leaderboard-empty" style="padding:20px; color:#8aa07a; font-size:14px;">加载中...</div>
             </div>
             <button class="btn btn-gold" id="leaderboard-back" style="margin-top:20px;">← 返回</button>
         </div>
@@ -621,7 +621,7 @@
                 alert('昵称不能为空！');
                 return;
             }
-            const jaccount = prompt('请输入您的 JAccount（选填，可直接确定）：') || '';
+            const jaccount = prompt('请输入您的 JAccount（选填，可直接点确定跳过）：') || '';
             const payload = {
                 name: name.trim(),
                 jaccount: jaccount.trim(),
